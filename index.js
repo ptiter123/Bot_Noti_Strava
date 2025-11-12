@@ -12,7 +12,6 @@ const handleRegister = require("./commands/register");
 const handleReportFilter = require("./commands/report_filter");
 const submitManualActivity = require('./handler/activity_manual');
 const viewReportActivity = require('./handler/report');
-const handleTest = require("./commands/test");
 const filterCommand = require('./middleware/filterCommand');
 const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
@@ -93,10 +92,6 @@ const BOT_ID = process.env.APPLICATION_ID_TEST;
       return handleReportFilter(client, event);
     }
 
-    if(text === "*test"){
-      return handleTest(client, event);
-    }
-    
   });
 
   const app = express();  
