@@ -13,10 +13,6 @@ const ALLOWED_CLANS = [
 
 module.exports = async function filterCommand(client, event) {
   const channel = await client.channels.fetch(event.channel_id);
-  console.log('Channel info:', channel);
-  const channel_label = channel.name;
-  
-  console.log('Channel label:', channel_label);
   const message = await channel.messages.fetch(event.message_id);
   const clanId = event.clan_id;
   // if(!clanId){

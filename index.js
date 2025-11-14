@@ -36,16 +36,9 @@ const BOT_ID = process.env.APPLICATION_ID;
 
   // startRankingCron(client);
 
-  client.onVoiceLeavedEvent(async (event) => {
-    try {
-      console.log(event);
-    } catch (err) {
-      console.error("ohnooo", err);
-    }
-  });
+
   client.onMessageButtonClicked(async (ev) => {
     const buttonId = ev.button_id || '';
-    console.log('Received activity manual button click:', ev);
 
     if (buttonId.startsWith('button-submit-') || buttonId.startsWith('button-cancel-')) { 
       await submitManualActivity(client, ev);
