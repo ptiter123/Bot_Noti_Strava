@@ -12,6 +12,7 @@ const handleRegister = require("./commands/register");
 const handleReportFilter = require("./commands/report_filter");
 const submitManualActivity = require('./handler/activity_manual');
 const viewReportActivity = require('./handler/report');
+const viewStravaOrther = require('./commands/strava_orther');
 const filterCommand = require('./middleware/filterCommand');
 const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
@@ -54,7 +55,7 @@ const BOT_ID = process.env.APPLICATION_ID;
 
 
     if (text === "*strava_help") {
-      if (!await filterCommand(client, event)) return;
+      // if (!await filterCommand(client, event)) return;
       return handleHelp(client, event);
     }
     if (text === "*strava_login") {
@@ -83,6 +84,11 @@ const BOT_ID = process.env.APPLICATION_ID;
     if(text === "*strava_report"){
       if (!await filterCommand(client, event)) return;
       return handleReportFilter(client, event);
+    }
+
+    if(text === "*strava"){
+      if (!await filterCommand(client, event)) return;
+      return viewStravaOrther(client, event);
     }
 
   });
