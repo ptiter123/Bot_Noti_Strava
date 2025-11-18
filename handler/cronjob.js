@@ -2,12 +2,11 @@ const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const cron = require("node-cron");
 
-const CHANNEL_ID = "1971995230311813120";
-
+const CHANNEL_ID = process.env.CHANNEL_NOTI_REPORT;
+const CRON_SCHEDULE = process.env.CRONJOB_SCHEDULER;
 
 module.exports = function startRankingCron(client) {
-  cron.schedule(
-    "45 13 15 * * *",
+  cron.schedule(CRON_SCHEDULE,
     async () => {
       const dbPath = path.join(__dirname, "../data", "strava_bot.db");
       const db = new sqlite3.Database(dbPath);
@@ -24,13 +23,29 @@ module.exports = function startRankingCron(client) {
 
       // Motivational messages
       const messages = [
-        "Hãy cố gắng vận động hôm nay nhé! 💪",
-        "Đừng bỏ lỡ cơ hội cải thiện sức khỏe! 🚴‍♂️",
-        "Một ngày không vận động là một ngày lãng phí! 🏃‍♀️",
-        "Cùng nhau duy trì thói quen tốt nào! 🏆",
-        "Bạn có thể bắt đầu lại bất cứ lúc nào! 🔥",
-        "Hãy để Strava ghi nhận nỗ lực của bạn! 📈",
-        "Vận động để sống khỏe mạnh hơn! 🌟",
+        // 💬 Friendly & Playful
+        "Giày thể thao của bạn vẫn còn ngủ kìa 😴 — Đánh thức chúng bằng một buổi vận động nhé! 🏃‍♂️💨",
+        "Strava của bạn yên tĩnh quá rồi 👀 — Cùng làm nóng không khí bằng một buổi chạy/chèo/cưỡi xe nhẹ nào!",
+        "Không mồ hôi, không câu chuyện 💪 — 15 phút vận động cũng tuyệt vời lắm!",
+        "Bảng xếp hạng đang nhớ bạn đấy! 🏆 Mau vận động để tên mình sáng lên nào!",
+        "Hoạt động cuối cùng của bạn đang cô đơn lắm… Thêm một cái mới đi chứ 😄",
+        "Chỉ 10 phút thôi cũng đủ tạo khác biệt! 🚶",
+        "Nhóm sáng nay đang đốt cháy calories 🔥 — Đừng để họ lấy hết vinh quang nhé!",
+        "Thời tiết đẹp quá, ra ngoài vận động một chút rồi log lại trên Mezon nhé ☀️",
+        "Nhà vô địch được tạo nên từ những buổi tập nhỏ 💪",
+        "Vẫn chưa tham gia tuần này à? Cả nhóm cổ vũ bạn đó! 🎉",
+        // 💬 Encouraging & Team-Spirit
+        "Mỗi bước chân đều có ý nghĩa — Cùng nhau vận động tuần này nhé! 🚴‍♀️🏃‍♀️",
+        "Không ai bắt đầu là số 1, nhưng ai cũng có thể bắt đầu hôm nay! 💫",
+        "Cả nhóm đang chờ tên bạn xuất hiện trên bảng vàng 🏅",
+        "Không cần nhanh, chỉ cần tham gia là được! 🙌",
+        "Khó nhất là bắt đầu, khó nhì là dừng lại 😆 Cố lên!",
+        // 💬 Funny / Meme-style (giữ tiếng Anh cho tự nhiên)
+        "Calories are afraid of you. Prove it. 😎🔥",
+        "No activity detected... are you charging your legs? ⚡",
+        "When was your last run? The blockchain says: ‘too long ago’ 🧾😂",
+        "Running late to meetings doesn’t count as cardio 🏃‍♂️💼",
+        "Fitness bot says: 404 Activity Not Found — please fix ASAP!"
       ];
       const randomMsg = messages[Math.floor(Math.random() * messages.length)];
 
@@ -57,34 +72,32 @@ module.exports = function startRankingCron(client) {
             return;
           }
           const activeIds = (activeRows || []).map(u => u.mezon_user_id);
-          // Find inactive users
           const inactiveUsers = (users || []).filter(u => !activeIds.includes(u.mezon_user_id));
 
           if (!inactiveUsers || inactiveUsers.length === 0) {
-            await channel.send(`🎉 Tất cả thành viên đều đã có hoạt động trong 7 ngày qua!`);
             db.close();
             return;
           }
 
-          // Tag inactive users
-          const tags = inactiveUsers.map(u => `<@${u.mezon_user_id}>`).join(" ");
-          const names = inactiveUsers.map(u => u.athlete_name).join(", ");
+          // Build mention string and mentions array for Mezon
+          let tMsg = "Xin chào ";
+          let mentionsArr = [];
+          let offset = 9; // "Xin chào "
+          inactiveUsers.forEach((u, idx) => {
+            const mentionTag = `@${u.athlete_name}`;
+            tMsg += mentionTag;
+            mentionsArr.push({ user_id: u.mezon_user_id, s: offset, e: offset + mentionTag.length });
+            offset += mentionTag.length;
+            if (idx < inactiveUsers.length - 1) {
+              tMsg += ", ";
+              offset += 2;
+            }
+          });
+          tMsg += " — anh em chưa có hoạt động nào trong 7 ngày gần nhất đâu nhé!";
+          tMsg += "\n";
+          tMsg += `👉 ${randomMsg}`;
 
-          const embed = [
-            {
-              color: 0xff9900,
-              title: `🔔 Báo cáo thành viên chưa có hoạt động 7 ngày qua`,
-              description:
-                `Các thành viên sau chưa ghi nhận hoạt động nào trong 7 ngày qua:\n${tags}\n\nTên: ${names}\n\n${randomMsg}`,
-              timestamp: new Date().toISOString(),
-              footer: {
-                text: "Powered by Mezon Bot Strava",
-                icon_url:
-                  "https://d3nn82uaxijpm6.cloudfront.net/favicon-32x32.png",
-              },
-            },
-          ];
-          await channel.send({ embed });
+          await channel.send({ t: tMsg }, mentionsArr);
           db.close();
         });
       });

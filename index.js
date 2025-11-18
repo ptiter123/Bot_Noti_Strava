@@ -1,5 +1,5 @@
-// const startRankingCron = require('./handler/cronjob');
 require('dotenv').config();
+const startRankingCron = require('./handler/cronjob');
 const express = require('express');
 const { MezonClient } = require('mezon-sdk');
 const registerHealthApi = require('./api/health');
@@ -34,7 +34,7 @@ const BOT_ID = process.env.APPLICATION_ID;
   const session = await client.login();
   // console.log('Bot logged in with session:', session);
 
-  // startRankingCron(client);
+  startRankingCron(client);
 
 
   client.onMessageButtonClicked(async (ev) => {
